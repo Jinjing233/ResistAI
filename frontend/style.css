@@ -70,20 +70,31 @@ input[type="range"] {
   padding: 32px 24px 88px;
 }
 
+.hero {
+  padding: 1.25rem 24px 2.75rem;
+  min-height: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    min-height: 52vh;
+    max-height: 620px;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+  }
+}
+
 .hero__content,
 .simulation > *,
 .results > *,
 .about > * {
   max-width: var(--max-width);
   margin: 0 auto;
-}
-
-.hero {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
 }
 
 .hero__noise {
@@ -103,8 +114,10 @@ input[type="range"] {
   z-index: 1;
   text-align: center;
   display: grid;
-  gap: 22px;
+  gap: 14px;
   justify-items: center;
+  width: 100%;
+  padding-top: 0.25rem;
 }
 
 .eyebrow,
@@ -118,14 +131,17 @@ input[type="range"] {
 }
 
 .hero__counter {
-  margin: 0 0 18px 0;
+  margin: 0;
   font-family: "Poppins", sans-serif;
-  font-weight: 700;
-  font-size: clamp(3rem, 8vw, 5.8rem);
+  font-weight: 800;
+  font-size: clamp(3rem, 5.8vw, 4.6rem);
   line-height: 1;
-  color: #ffffff;
-  letter-spacing: -0.01em;
-  text-shadow: 0 0 24px rgba(255, 255, 255, 0.25);
+  color: var(--color-red);
+  letter-spacing: -0.02em;
+  text-shadow:
+    0 0 18px rgba(255, 59, 48, 0.55),
+    0 0 42px rgba(255, 59, 48, 0.28),
+    0 2px 10px rgba(255, 59, 48, 0.35);
 }
 
 .hero__source {
@@ -138,6 +154,9 @@ input[type="range"] {
 .hero__title-group {
   display: grid;
   gap: 12px;
+  justify-items: center;
+  width: 100%;
+  text-align: center;
 }
 
 h1,
@@ -157,17 +176,20 @@ h1 {
 }
 
 .hero__subtitle {
+  display: block;
+  width: 100%;
   max-width: 920px;
+  margin: 0 auto;
+  text-align: center;
   font-weight: 500;
   font-size: 1.05rem;
   line-height: 1.7;
   color: var(--color-ash);
-  white-space: nowrap;
 }
 
 @media (max-width: 980px) {
   .hero__subtitle {
-    white-space: normal;
+    max-width: min(920px, 100%);
   }
 }
 
@@ -354,7 +376,7 @@ input[type="range"] {
   margin: 0 auto;
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
 }
 
 .result-card {
@@ -394,7 +416,7 @@ input[type="range"] {
 .viz-grid {
   max-width: var(--max-width);
   margin: 0 auto;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
 }
 
 .viz-card {
@@ -442,7 +464,7 @@ svg {
 .recommendations {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
 }
 
 .recommendations div {
@@ -492,7 +514,74 @@ svg {
 .about-grid {
   max-width: var(--max-width);
   margin: 0 auto;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+.recovery,
+.results {
+  display: grid;
+  gap: 24px;
+}
+
+.recovery {
+  padding: 32px 24px 88px;
+}
+
+.recovery > * {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.info-panel {
+  padding: 20px 24px;
+  border-radius: var(--radius-card);
+  border: 1px solid rgba(255, 191, 87, 0.32);
+  background: rgba(255, 191, 87, 0.08);
+  color: var(--color-ash);
+  line-height: 1.6;
+}
+
+.ai-badge {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.ai-badge--claude {
+  background: rgba(57, 217, 138, 0.14);
+  border: 1px solid rgba(57, 217, 138, 0.32);
+  color: var(--color-green);
+}
+
+.ai-badge--demo {
+  background: rgba(255, 191, 87, 0.14);
+  border: 1px solid rgba(255, 191, 87, 0.32);
+  color: #ffb347;
+}
+
+.scenario-table-shell {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.ai-brief-body {
+  color: var(--color-ash);
+  line-height: 1.7;
+}
+
+.ai-brief-body h3 {
+  color: var(--color-paper);
+  font-family: var(--font-display);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .about-card {
@@ -612,5 +701,213 @@ svg {
   .about-card li,
   #aiSummary {
     color: #444444;
+  }
+}
+
+/* ── Streamlit bridge: apply Full UI design inside Streamlit shell ── */
+
+.stApp {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.12), transparent 22%),
+    radial-gradient(circle at 50% 20%, rgba(255, 59, 48, 0.16), transparent 34%),
+    linear-gradient(180deg, #050505 0%, #0a0a0a 24%, #070707 100%) !important;
+  color: var(--color-paper);
+  font-family: var(--font-base);
+}
+
+header[data-testid="stHeader"] {
+  background: transparent;
+}
+
+.main .block-container {
+  max-width: 1180px;
+  padding-top: 0;
+  padding-bottom: 4rem;
+}
+
+.resistai-page {
+  width: 100%;
+}
+
+/* Hero: prevent Streamlit markdown defaults from shrinking typography */
+.main .block-container > div:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.stMarkdown:has(.hero),
+[data-testid="stMarkdownContainer"]:has(.hero) {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.stMarkdown .hero .eyebrow,
+[data-testid="stMarkdownContainer"] .hero .eyebrow {
+  font-size: 0.86rem !important;
+  color: var(--color-pewter) !important;
+  margin: 0 !important;
+}
+
+.stMarkdown .hero .hero__counter,
+[data-testid="stMarkdownContainer"] .hero .hero__counter {
+  font-family: "Poppins", sans-serif !important;
+  font-size: clamp(3rem, 5.8vw, 4.6rem) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  color: var(--color-red) !important;
+  letter-spacing: -0.02em !important;
+  text-shadow:
+    0 0 18px rgba(255, 59, 48, 0.55),
+    0 0 42px rgba(255, 59, 48, 0.28),
+    0 2px 10px rgba(255, 59, 48, 0.35) !important;
+}
+
+.stMarkdown .hero h1,
+[data-testid="stMarkdownContainer"] .hero h1 {
+  font-family: var(--font-display) !important;
+  font-size: clamp(2.6rem, 6.4vw, 5.8rem) !important;
+  font-weight: 700 !important;
+  line-height: 0.98 !important;
+  color: var(--color-paper) !important;
+}
+
+.stMarkdown .hero .hero__subtitle,
+[data-testid="stMarkdownContainer"] .hero .hero__subtitle {
+  display: block !important;
+  width: 100% !important;
+  max-width: 920px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+  font-size: 1.05rem !important;
+  color: var(--color-ash) !important;
+}
+
+.stMarkdown .hero .hero__source,
+[data-testid="stMarkdownContainer"] .hero .hero__source {
+  font-size: 0.78rem !important;
+  color: var(--color-steel) !important;
+}
+
+section[data-testid="stSidebar"] {
+  background: rgba(8, 8, 8, 0.96);
+  border-right: 1px solid var(--color-border);
+}
+
+section[data-testid="stSidebar"] > div {
+  background: transparent;
+}
+
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] span {
+  color: var(--color-paper) !important;
+  font-family: var(--font-base);
+}
+
+section[data-testid="stSidebar"] .stMarkdown p {
+  color: var(--color-ash) !important;
+  font-size: 0.92rem;
+}
+
+section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+  color: var(--color-paper) !important;
+  font-size: 0.98rem;
+}
+
+section[data-testid="stSidebar"] .stSelectbox > div > div,
+section[data-testid="stSidebar"] .stNumberInput > div > div > input {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+section[data-testid="stSidebar"] .stSlider [data-baseweb="slider"] div {
+  color: var(--color-paper);
+}
+
+section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
+  background: var(--color-red);
+  color: var(--color-paper);
+  border: none;
+  border-radius: var(--radius-button);
+  box-shadow: 0 16px 48px rgba(255, 59, 48, 0.18);
+  font-weight: 600;
+  min-height: 48px;
+}
+
+section[data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
+  background: #ff4d43;
+  border: none;
+  color: var(--color-paper);
+}
+
+.resistai-inline-btn .stButton > button {
+  background: var(--color-green);
+  color: #03150c;
+  border: none;
+  border-radius: var(--radius-button);
+  font-weight: 600;
+  min-height: 48px;
+}
+
+.resistai-inline-btn .stButton > button:hover {
+  background: #50e19a;
+  color: #03150c;
+  border: none;
+}
+
+.resistai-inline-btn--primary .stButton > button {
+  background: var(--color-red);
+  color: var(--color-paper);
+}
+
+.resistai-inline-btn--primary .stButton > button:hover {
+  background: #ff4d43;
+  color: var(--color-paper);
+}
+
+[data-testid="column"]:has(.viz-card-head) {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 20px;
+  min-width: 0;
+}
+
+[data-testid="column"]:has(.viz-card-head) [data-testid="stPlotlyChart"],
+[data-testid="column"]:has(.viz-card-head) .js-plotly-plot {
+  width: 100% !important;
+}
+
+[data-testid="column"]:has(.viz-card-head) .stPlotlyChart {
+  overflow-x: auto;
+}
+
+[data-testid="stDataFrame"],
+[data-testid="stDataFrame"] div {
+  background: transparent;
+}
+
+.scenario-table-shell [data-testid="stDataFrame"] {
+  border: none;
+}
+
+div[data-testid="stHorizontalBlock"] {
+  gap: 1rem;
+}
+
+div[data-testid="column"] {
+  min-width: 0 !important;
+}
+
+@media (max-width: 980px) {
+  div[data-testid="stHorizontalBlock"] {
+    flex-wrap: wrap;
   }
 }
