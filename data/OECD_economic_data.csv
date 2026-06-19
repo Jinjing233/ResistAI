@@ -1,0 +1,6 @@
+country,gdp_per_capita,health_expenditure_pct,physicians_per_1000,country_modifier,cost_per_death
+India,2500,3.2,0.9,1.15,8000
+Nigeria,2000,3.5,0.4,1.25,5000
+Brazil,9000,9.5,2.3,1.08,12000
+UK,48000,10.5,3.0,0.90,40000
+US,65000,16.5,2.6,0.95,45000
