@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>usaii final ui</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ResistAI: The Cost of Delay</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23090909'/%3E%3Cpath d='M9 9h14v4H13v3h8v4h-8v3h10v4H9z' fill='%23ff3b30'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&family=Poppins:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <div class="hero__noise"></div>
+        <div class="hero__content">
+          <p class="eyebrow">People killed by AMR today:</p>
+          <p class="hero__counter" id="dailyCounter" aria-live="polite">1,243,847</p>
+      
+          <div class="hero__title-group">
+            <h1>ResistAI: The Cost of Delay</h1>
+            <p class="hero__subtitle">
+              An AI simulator that shows policymakers the true cost of inaction on antibiotic resistance.
+            </p>
+          </div>
+
+          <button class="button button--primary" id="startSimBtn" type="button">Start Simulation →</button>
+        </div>
+      </section>
+
+      <section class="simulation" id="simulation">
+        <div class="section-heading">
+          <span class="section-kicker">Simulator</span>
+          <h2>Build Your Scenario</h2>
+        </div>
+
+        <div class="sim-grid">
+          <form class="control-panel" id="scenarioForm">
+            <label class="field">
+              <span>Country</span>
+              <select id="country" name="country">
+                <option value="India">India</option>
+                <option value="Nigeria">Nigeria</option>
+                <option value="Brazil">Brazil</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="United States">United States</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Years of delay</span>
+              <div class="field__range">
+                <input id="delay" name="delay" type="range" min="1" max="10" value="5" />
+                <strong id="delayValue">5 years</strong>
+              </div>
+            </label>
+
+            <label class="field">
+              <span>Funding level</span>
+              <div class="field__range">
+                <input id="funding" name="funding" type="range" min="1" max="10" value="6" />
+                <strong id="fundingValue">Medium</strong>
+              </div>
+            </label>
+
+            <label class="field">
+              <span>Stewardship adoption</span>
+              <div class="field__range">
+                <input
+                  id="stewardship"
+                  name="stewardship"
+                  type="range"
+                  min="1"
+                  max="10"
+                  value="3"
+                />
+                <strong id="stewardshipValue">Low</strong>
+              </div>
+            </label>
+
+            <label class="field">
+              <span>R&amp;D investment</span>
+              <div class="field__range">
+                <input id="rd" name="rd" type="range" min="1" max="10" value="8" />
+                <strong id="rdValue">High</strong>
+              </div>
+            </label>
+
+            <button class="button button--primary button--full" type="submit">
+              Run Simulation →
+            </button>
+          </form>
+
+          <aside class="live-panel">
+            <p class="live-panel__label">Estimated impact updating live...</p>
+            <div class="metric-stack">
+              <div class="metric">
+                <span>Deaths</span>
+                <strong id="liveDeaths">1.2M</strong>
+              </div>
+              <div class="metric">
+                <span>Cost</span>
+                <strong id="liveCost">$80B</strong>
+              </div>
+              <div class="metric">
+                <span>GDP impact</span>
+                <strong id="liveGdp">-$120B</strong>
+              </div>
+            </div>
+            <p class="live-panel__note" id="explanation">
+              Based on your inputs, delaying AMR action in India by 5 years results in
+              higher mortality, rising treatment costs, and avoidable productivity loss.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="results">
+        <div class="cards" id="scenarioCards">
+          <article class="result-card result-card--positive">
+            <p>Early Action</p>
+            <ul>
+              <li>Deaths: <strong id="earlyDeaths">800K</strong></li>
+              <li>Cost: <strong id="earlyCost">$60B</strong></li>
+              <li>GDP: <strong id="earlyGdp">-$100B</strong></li>
+            </ul>
+          </article>
+          <article class="result-card result-card--warning">
+            <p>Delayed Action</p>
+            <ul>
+              <li>Deaths: <strong id="delayedDeaths">2.3M</strong></li>
+              <li>Cost: <strong id="delayedCost">$180B</strong></li>
+              <li>GDP: <strong id="delayedGdp">-$340B</strong></li>
+            </ul>
+          </article>
+          <article class="result-card result-card--danger">
+            <p>No Action</p>
+            <ul>
+              <li>Deaths: <strong id="noneDeaths">4.1M</strong></li>
+              <li>Cost: <strong id="noneCost">$400B</strong></li>
+              <li>GDP: <strong id="noneGdp">-$700B</strong></li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="viz-grid">
+          <article class="viz-card">
+            <div class="viz-card__head">
+              <span>2025–2050</span>
+              <h3>Deaths over time</h3>
+            </div>
+            <svg id="lineChart" viewBox="0 0 620 260" role="img" aria-label="AMR deaths over time chart"></svg>
+          </article>
+
+          <article class="viz-card">
+            <div class="viz-card__head">
+              <span>Scenario comparison</span>
+              <h3>Economic cost</h3>
+            </div>
+            <svg id="barChart" viewBox="0 0 620 260" role="img" aria-label="AMR cost comparison chart"></svg>
+          </article>
+        </div>
+
+        <div class="ai-box">
+          <div>
+            <span class="section-kicker">AI explanation</span>
+            <p id="aiSummary">
+              Based on your inputs, delaying AMR action in India by 5 years results in
+              millions of additional resistant infections, steep fiscal pressure, and
+              preventable hospital burden.
+            </p>
+          </div>
+
+          <div class="recommendations">
+            <div>
+              <span>Immediate actions</span>
+              <strong id="recImmediate">Saves 300K lives</strong>
+            </div>
+            <div>
+              <span>Short term actions</span>
+              <strong id="recShort">Saves 800K lives</strong>
+            </div>
+            <div>
+              <span>Long term actions</span>
+              <strong id="recLong">Saves 1.5M lives</strong>
+            </div>
+          </div>
+
+          <button class="button button--success" id="applyRecommendations">
+            ✓ Apply Recommendations
+          </button>
+        </div>
+
+        <div class="success-panel" id="successPanel" hidden>
+          <p class="success-panel__count" id="savedLives">You just saved 1,847,293 lives</p>
+          <div class="headline-box" id="headlineBox">
+            India 2031: AMR Crisis Averted — Early Investment Saves 2M Lives
+          </div>
+          <button class="button button--primary" id="downloadReport">Download PDF Report</button>
+        </div>
+      </section>
+
+      <section class="about">
+        <div class="section-heading">
+          <span class="section-kicker">About</span>
+          <h2>About This Tool</h2>
+        </div>
+
+        <div class="about-grid">
+          <article class="about-card">
+            <h3>⚠️ What this tool does NOT do</h3>
+            <ul>
+              <li>Does not diagnose patients</li>
+              <li>Does not replace doctors</li>
+              <li>Does not predict exact outcomes</li>
+            </ul>
+          </article>
+
+          <article class="about-card">
+            <h3>📊 Our Data Sources</h3>
+            <ul>
+              <li>WHO Global AMR Report 2023</li>
+              <li>OECD AMR Report</li>
+              <li>CDC Resistance Report 2019</li>
+            </ul>
+          </article>
+
+          <article class="about-card">
+            <h3>👤 Human in the Loop</h3>
+            <p>
+              All recommendations must be reviewed by qualified public health experts
+              before any action is taken.
+            </p>
+          </article>
+
+          <article class="about-card">
+            <h3>📅 Data Last Updated</h3>
+            <p>WHO data vintage: 2023</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>
