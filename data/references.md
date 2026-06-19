@@ -1,21 +1,23 @@
 ## COUNTRY SET USED IN THIS SIMULATION
 
-The system supports the following seven countries/regions (single source of truth: `data/country_baselines.py`):
+The system supports the following seven countries/regions as the current MVP country set:
 
 - **Global** — Lancet 2019 worldwide aggregate
-- **USA**
+- **USA / United States**
 - **India**
 - **Brazil**
 - **Peru**
 - **Nigeria**
-- **UK**
+- **UK / United Kingdom**
 
-These were selected to represent:
+These countries were selected to represent:
 
-- Global policy narrative (Global)
-- High-income systems (USA, UK)
-- Large middle-income burden (India, Brazil, Peru)
-- Low-income high-burden region (Nigeria)
+- Global policy narrative (**Global**)
+- High-income healthcare systems (**USA, UK**)
+- Large middle-income or transition regions (**India, Brazil, Peru**)
+- Low-income high-burden region (**Nigeria**)
+
+The single runtime source of truth is `data/country_baselines.py`.
 
 ---
 
@@ -23,11 +25,11 @@ These were selected to represent:
 
 | File | Used for | Countries covered |
 |------|----------|-------------------|
-| `WHO_AMR_data.csv` | RBI derivation (resistance proxies) | India, Nigeria, Brazil, UK, USA |
-| `OECD_economic_data.csv` | GDP, country_modifier, cost_per_death | India, Nigeria, Brazil, UK, USA |
-| `country_baselines.py` | Runtime merge + Lancet death anchors + estimates | All seven |
+| `WHO_AMR_data.csv` | RBI derivation / resistance proxy values | India, Nigeria, Brazil, UK, USA |
+| `OECD_economic_data.csv` | GDP, country modifier, cost per death | India, Nigeria, Brazil, UK, USA |
+| `country_baselines.py` | Runtime merge, Lancet death anchors, and documented estimates | All seven |
 
-**Note:** Global and Peru do not have rows in the CSV files. Global uses Lancet global mortality; Peru uses Lancet regional death estimates and documented economic proxies.
+**Note:** Global and Peru do not have rows in the CSV files. Global uses Lancet global mortality values. Peru uses Lancet regional estimates and documented economic proxies.
 
 ---
 
@@ -35,10 +37,10 @@ These were selected to represent:
 
 Fields marked `is_estimate=True` in metadata include:
 
-- Nigeria and UK **baseline AMR deaths** (scaled from Lancet regional anchors)
-- Peru **baseline AMR deaths** (Latin America regional share)
-- **RBI** for all countries (derived from WHO CSV proxies or documented calibration)
-- Global **economic and RBI fields** (global proxies)
+- Nigeria and UK baseline AMR deaths, scaled from Lancet regional anchors
+- Peru baseline AMR deaths, based on Latin America regional share
+- RBI values, derived from WHO CSV proxies or documented calibration
+- Global economic and RBI proxy fields
 
 Lancet-sourced **Global direct deaths (1.27M)** and **associated deaths (4.95M)** are not marked as estimates.
 
