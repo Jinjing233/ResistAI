@@ -123,35 +123,27 @@ def normalize_country(country: str) -> str:
     """
     Resolve a country name to a supported baseline key.
 
-    Matching is case-insensitive. Unknown countries fall back to 'Global'.
+    Delegates to data.normalize_country() so the country list has a single source.
     """
-    for key in COUNTRY_DEFAULTS:
-        if key.lower() == country.strip().lower():
-            return key
-    return "Global"
+    from data import normalize_country as data_normalize_country
+
+    return data_normalize_country(country)
 
 
 def get_country_baseline(country: str) -> dict[str, Any]:
     """
     Return baseline parameters for a country or region.
 
-    Catharine's data/ module can later supply real values by overriding the
-    lookup logic here while keeping this function signature unchanged.
+    Delegates to data.get_country_baseline(). Metadata from the data module is
+    preserved for UI transparency; simulation formulas use the numeric fields only.
 
     Returns:
         Dict with keys: country, baseline_deaths, rbi_0, gdp_per_capita,
         country_modifier, cost_per_death.
     """
-    resolved = normalize_country(country)
-    defaults = COUNTRY_DEFAULTS[resolved]
-    return {
-        "country": resolved,
-        "baseline_deaths": defaults["baseline_deaths"],
-        "rbi_0": defaults["rbi_0"],
-        "gdp_per_capita": defaults["gdp_per_capita"],
-        "country_modifier": defaults["country_modifier"],
-        "cost_per_death": defaults["cost_per_death"],
-    }
+    from data import get_country_baseline as data_get_country_baseline
+
+    return data_get_country_baseline(country)
 
 
 def compute_intervention_strength(

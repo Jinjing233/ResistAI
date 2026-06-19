@@ -1,7 +1,8 @@
+"""
 AI-powered recommendation engine for the ResistAI project.
 Builds contextual prompts from simulation parameters
 and sends them to Claude to obtain clear policy recommendations.
- 
+
 Usage:
     from ai.recommendation_engine import generate_recommendation
     text = generate_recommendation(country="Peru", delay_years=5, ...)

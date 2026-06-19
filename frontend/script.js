@@ -1,34 +1,12 @@
-// WHO / Lancet (2019) global burden of disease estimate: ~1.27M deaths
-// directly attributable to antimicrobial resistance per year.
-const ANNUAL_AMR_DEATHS = 1270000;
+/**
+ * ResistAI frontend display layer.
+ *
+ * This file does NOT run mock epidemiological models. It renders results injected
+ * by app.py via window.RESISTAI_PAYLOAD (countries from data.list_supported_countries,
+ * metrics from simulation.compare_scenarios).
+ */
+
 const SECONDS_PER_YEAR = 365 * 24 * 60 * 60;
-const DEATHS_PER_SECOND = ANNUAL_AMR_DEATHS / SECONDS_PER_YEAR;
-
-function getSecondsSinceMidnight() {
-  const now = new Date();
-  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  return (now - midnight) / 1000;
-}
-
-const state = {
-  counter: Math.round(DEATHS_PER_SECOND * getSecondsSinceMidnight()),
-  country: "India",
-  delay: 5,
-  funding: 6,
-  stewardship: 3,
-  rd: 8,
-  savedLives: 1847293,
-};
-
-const yearlyLabels = [2025, 2030, 2035, 2040, 2045, 2050];
-
-const countryMultipliers = {
-  India: 1,
-  Nigeria: 0.72,
-  Brazil: 0.78,
-  "United Kingdom": 0.36,
-  "United States": 0.52,
-};
 
 const elements = {
   dailyCounter: document.getElementById("dailyCounter"),
@@ -40,9 +18,7 @@ const elements = {
   stewardship: document.getElementById("stewardship"),
   rd: document.getElementById("rd"),
   delayValue: document.getElementById("delayValue"),
-  fundingValue: document.getElementById("fundingValue"),
   stewardshipValue: document.getElementById("stewardshipValue"),
-  rdValue: document.getElementById("rdValue"),
   liveDeaths: document.getElementById("liveDeaths"),
   liveCost: document.getElementById("liveCost"),
   liveGdp: document.getElementById("liveGdp"),
@@ -54,127 +30,144 @@ const elements = {
   earlyDeaths: document.getElementById("earlyDeaths"),
   earlyCost: document.getElementById("earlyCost"),
   earlyGdp: document.getElementById("earlyGdp"),
+  earlyRisk: document.getElementById("earlyRisk"),
   delayedDeaths: document.getElementById("delayedDeaths"),
   delayedCost: document.getElementById("delayedCost"),
   delayedGdp: document.getElementById("delayedGdp"),
+  delayedRisk: document.getElementById("delayedRisk"),
   noneDeaths: document.getElementById("noneDeaths"),
   noneCost: document.getElementById("noneCost"),
   noneGdp: document.getElementById("noneGdp"),
+  noneRisk: document.getElementById("noneRisk"),
   lineChart: document.getElementById("lineChart"),
   barChart: document.getElementById("barChart"),
+  chartYearSpan: document.getElementById("chartYearSpan"),
   applyRecommendations: document.getElementById("applyRecommendations"),
   successPanel: document.getElementById("successPanel"),
   savedLives: document.getElementById("savedLives"),
   headlineBox: document.getElementById("headlineBox"),
   downloadReport: document.getElementById("downloadReport"),
+  dataVintage: document.getElementById("dataVintage"),
 };
 
-function formatCompactMillions(value) {
-  return `${(value / 1000000).toFixed(1)}M`;
+function getPayload() {
+  return window.RESISTAI_PAYLOAD || null;
 }
 
-function formatCompactThousands(value) {
-  if (value >= 1000000) return `${Math.round(value / 100000) / 10}M`;
-  return `${Math.round(value / 1000)}K`;
+function getSecondsSinceMidnight() {
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return (now - midnight) / 1000;
 }
 
-function formatCurrencyBillions(value) {
-  return `$${Math.round(value)}B`;
+function formatCount(value) {
+  if (value == null || Number.isNaN(value)) return "—";
+  return Math.round(value).toLocaleString();
 }
 
-function formatNegativeCurrencyBillions(value) {
-  return `-$${Math.round(value)}B`;
+function formatMillions(value) {
+  if (value == null || Number.isNaN(value)) return "—";
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${Math.round(value / 1_000)}K`;
+  return formatCount(value);
 }
 
-function formatMood(value) {
-  if (value <= 3) return "Low";
-  if (value <= 7) return "Medium";
-  return "High";
+function formatUsdMillions(value) {
+  if (value == null || Number.isNaN(value)) return "—";
+  return `$${Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 })}M`;
 }
 
-function calculateScenario() {
-  const factor = countryMultipliers[state.country] ?? 1;
-  const delayPenalty = 1 + state.delay * 0.18;
-  const protection = 1 + (state.funding + state.stewardship + state.rd) / 30;
-
-  const liveDeaths = 650000 * factor * delayPenalty / (protection * 0.74);
-  const liveCost = 44 * factor * delayPenalty / (protection * 0.63);
-  const liveGdp = 68 * factor * delayPenalty / (protection * 0.58);
-
-  const earlyDeaths = liveDeaths * 0.62;
-  const delayedDeaths = liveDeaths * 1.92;
-  const noActionDeaths = liveDeaths * 3.25;
-
-  const earlyCost = liveCost * 0.78;
-  const delayedCost = liveCost * 2.25;
-  const noActionCost = liveCost * 5.05;
-
-  const earlyGdp = liveGdp * 0.82;
-  const delayedGdp = liveGdp * 2.75;
-  const noActionGdp = liveGdp * 5.5;
-
-  const preventedLives = Math.max(noActionDeaths - earlyDeaths, 50000);
-  const immediate = preventedLives * 0.18;
-  const shortTerm = preventedLives * 0.43;
-  const longTerm = preventedLives * 0.81;
-
-  return {
-    liveDeaths,
-    liveCost,
-    liveGdp,
-    earlyDeaths,
-    delayedDeaths,
-    noActionDeaths,
-    earlyCost,
-    delayedCost,
-    noActionCost,
-    earlyGdp,
-    delayedGdp,
-    noActionGdp,
-    preventedLives,
-    immediate,
-    shortTerm,
-    longTerm,
-  };
+function formatNegativeUsdMillions(value) {
+  if (value == null || Number.isNaN(value)) return "—";
+  return `-${formatUsdMillions(value)}`;
 }
 
-function buildTrendSeries(base) {
-  const early = yearlyLabels.map((_, index) => base.earlyDeaths * (0.48 + index * 0.11));
-  const delayed = yearlyLabels.map((_, index) => base.delayedDeaths * (0.38 + index * 0.12));
-  const none = yearlyLabels.map((_, index) => base.noActionDeaths * (0.28 + index * 0.15));
-  return { early, delayed, none };
+function cumulativeDeaths(series) {
+  return (series || []).reduce((sum, value) => sum + value, 0);
 }
 
-function updateLabels() {
-  elements.delayValue.textContent = `${state.delay} years`;
-  elements.fundingValue.textContent = formatMood(state.funding);
-  elements.stewardshipValue.textContent = formatMood(state.stewardship);
-  elements.rdValue.textContent = formatMood(state.rd);
+function populateCountryOptions(countries, selected) {
+  elements.country.innerHTML = "";
+  countries.forEach((country) => {
+    const option = document.createElement("option");
+    option.value = country;
+    option.textContent = country;
+    if (country === selected) option.selected = true;
+    elements.country.appendChild(option);
+  });
 }
 
-function renderLineChart(series) {
+function applyInputsToForm(inputs, readOnly) {
+  if (!inputs) return;
+
+  populateCountryOptions(
+    getPayload()?.supported_countries || [inputs.country],
+    inputs.country,
+  );
+  elements.delay.value = inputs.delay_years;
+  elements.delayValue.textContent = `${inputs.delay_years} years`;
+  elements.funding.value = inputs.funding_level;
+  elements.stewardship.value = inputs.stewardship_rate;
+  elements.stewardshipValue.textContent = `${Math.round(inputs.stewardship_rate)}%`;
+  elements.rd.value = inputs.rd_investment;
+
+  if (readOnly) {
+    elements.country.disabled = true;
+    elements.delay.disabled = true;
+    elements.funding.disabled = true;
+    elements.stewardship.disabled = true;
+    elements.rd.disabled = true;
+    elements.scenarioForm.querySelector('button[type="submit"]').hidden = true;
+  }
+}
+
+function downsampleSeries(years, values, targetPoints = 6) {
+  if (!years?.length) return { years: [], values: [] };
+  if (years.length <= targetPoints) return { years, values };
+
+  const step = Math.max(1, Math.floor((years.length - 1) / (targetPoints - 1)));
+  const sampledYears = [];
+  const sampledValues = [];
+  for (let i = 0; i < years.length; i += step) {
+    sampledYears.push(years[i]);
+    sampledValues.push(values[i]);
+  }
+  const lastIndex = years.length - 1;
+  if (sampledYears[sampledYears.length - 1] !== years[lastIndex]) {
+    sampledYears.push(years[lastIndex]);
+    sampledValues.push(values[lastIndex]);
+  }
+  return { years: sampledYears, values: sampledValues };
+}
+
+function renderLineChart(payload) {
   const svg = elements.lineChart;
+  const early = downsampleSeries(payload.comparison.early.years, payload.comparison.early.annual_deaths);
+  const delayed = downsampleSeries(payload.comparison.delayed.years, payload.comparison.delayed.annual_deaths);
+  const none = downsampleSeries(payload.comparison.no_action.years, payload.comparison.no_action.annual_deaths);
+  const yearlyLabels = early.years;
   const width = 620;
   const height = 260;
   const pad = { top: 18, right: 18, bottom: 34, left: 54 };
-  const max = Math.max(...series.early, ...series.delayed, ...series.none);
+  const max = Math.max(...early.values, ...delayed.values, ...none.values, 1);
   const plotWidth = width - pad.left - pad.right;
   const plotHeight = height - pad.top - pad.bottom;
 
-  const x = (index) => pad.left + (index / (yearlyLabels.length - 1)) * plotWidth;
+  const x = (index) => pad.left + (index / Math.max(yearlyLabels.length - 1, 1)) * plotWidth;
   const y = (value) => pad.top + plotHeight - (value / max) * plotHeight;
-
   const pathFor = (values) =>
     values.map((value, index) => `${index === 0 ? "M" : "L"} ${x(index)} ${y(value)}`).join(" ");
 
-  const ticks = [0.25, 0.5, 0.75, 1].map((ratio) => {
-    const value = max * ratio;
-    const pos = y(value);
-    return `
-      <line x1="${pad.left}" y1="${pos}" x2="${width - pad.right}" y2="${pos}" stroke="rgba(255,255,255,0.08)" />
-      <text x="${pad.left - 10}" y="${pos + 4}" fill="rgba(255,255,255,0.58)" font-size="11" text-anchor="end">${formatCompactMillions(value)}</text>
-    `;
-  });
+  const ticks = [0.25, 0.5, 0.75, 1]
+    .map((ratio) => {
+      const value = max * ratio;
+      const pos = y(value);
+      return `
+        <line x1="${pad.left}" y1="${pos}" x2="${width - pad.right}" y2="${pos}" stroke="rgba(255,255,255,0.08)" />
+        <text x="${pad.left - 10}" y="${pos + 4}" fill="rgba(255,255,255,0.58)" font-size="11" text-anchor="end">${formatMillions(value)}</text>
+      `;
+    })
+    .join("");
 
   const yearAxis = yearlyLabels
     .map(
@@ -186,28 +179,31 @@ function renderLineChart(series) {
 
   svg.innerHTML = `
     <rect x="0" y="0" width="${width}" height="${height}" rx="18" fill="transparent" />
-    ${ticks.join("")}
-    <path d="${pathFor(series.early)}" fill="none" stroke="#39d98a" stroke-width="4" stroke-linecap="round" />
-    <path d="${pathFor(series.delayed)}" fill="none" stroke="#ffb347" stroke-width="4" stroke-linecap="round" />
-    <path d="${pathFor(series.none)}" fill="none" stroke="#ff3b30" stroke-width="4" stroke-linecap="round" />
+    ${ticks}
+    <path d="${pathFor(early.values)}" fill="none" stroke="#39d98a" stroke-width="4" stroke-linecap="round" />
+    <path d="${pathFor(delayed.values)}" fill="none" stroke="#ffb347" stroke-width="4" stroke-linecap="round" />
+    <path d="${pathFor(none.values)}" fill="none" stroke="#ff3b30" stroke-width="4" stroke-linecap="round" />
     ${yearAxis}
-    <g>
-      <circle cx="${x(5)}" cy="${y(series.early[5])}" r="4.5" fill="#39d98a"></circle>
-      <circle cx="${x(5)}" cy="${y(series.delayed[5])}" r="4.5" fill="#ffb347"></circle>
-      <circle cx="${x(5)}" cy="${y(series.none[5])}" r="4.5" fill="#ff3b30"></circle>
-    </g>
   `;
+
+  if (yearlyLabels.length >= 2) {
+    elements.chartYearSpan.textContent = `${yearlyLabels[0]}–${yearlyLabels[yearlyLabels.length - 1]}`;
+  }
 }
 
-function renderBarChart(summary) {
+function renderBarChart(payload) {
   const svg = elements.barChart;
   const width = 620;
   const height = 260;
   const pad = { top: 18, right: 18, bottom: 42, left: 54 };
-  const values = [summary.earlyCost, summary.delayedCost, summary.noActionCost];
+  const values = [
+    payload.comparison.early.summary.healthcare_cost_increase_usd_m,
+    payload.comparison.delayed.summary.healthcare_cost_increase_usd_m,
+    payload.comparison.no_action.summary.healthcare_cost_increase_usd_m,
+  ];
   const labels = ["Early", "Delayed", "No action"];
   const colors = ["#39d98a", "#ffb347", "#ff3b30"];
-  const max = Math.max(...values);
+  const max = Math.max(...values, 1);
   const plotWidth = width - pad.left - pad.right;
   const plotHeight = height - pad.top - pad.bottom;
   const barWidth = 98;
@@ -220,7 +216,7 @@ function renderBarChart(summary) {
       const barY = pad.top + plotHeight - barHeight;
       return `
         <rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="18" fill="${colors[index]}" opacity="0.88"></rect>
-        <text x="${barX + barWidth / 2}" y="${barY - 10}" fill="#ffffff" font-size="12" text-anchor="middle">${formatCurrencyBillions(value)}</text>
+        <text x="${barX + barWidth / 2}" y="${barY - 10}" fill="#ffffff" font-size="12" text-anchor="middle">${formatUsdMillions(value)}</text>
         <text x="${barX + barWidth / 2}" y="${height - 12}" fill="rgba(255,255,255,0.62)" font-size="12" text-anchor="middle">${labels[index]}</text>
       `;
     })
@@ -232,62 +228,91 @@ function renderBarChart(summary) {
   `;
 }
 
-function render() {
-  updateLabels();
-  const summary = calculateScenario();
+function renderScenarioCard(prefix, scenario) {
+  const cumulative = cumulativeDeaths(scenario.annual_deaths);
+  const summary = scenario.summary;
 
-  elements.liveDeaths.textContent = formatCompactMillions(summary.liveDeaths);
-  elements.liveCost.textContent = formatCurrencyBillions(summary.liveCost);
-  elements.liveGdp.textContent = formatNegativeCurrencyBillions(summary.liveGdp);
-
-  elements.earlyDeaths.textContent = formatCompactThousands(summary.earlyDeaths);
-  elements.earlyCost.textContent = formatCurrencyBillions(summary.earlyCost);
-  elements.earlyGdp.textContent = formatNegativeCurrencyBillions(summary.earlyGdp);
-
-  elements.delayedDeaths.textContent = formatCompactMillions(summary.delayedDeaths);
-  elements.delayedCost.textContent = formatCurrencyBillions(summary.delayedCost);
-  elements.delayedGdp.textContent = formatNegativeCurrencyBillions(summary.delayedGdp);
-
-  elements.noneDeaths.textContent = formatCompactMillions(summary.noActionDeaths);
-  elements.noneCost.textContent = formatCurrencyBillions(summary.noActionCost);
-  elements.noneGdp.textContent = formatNegativeCurrencyBillions(summary.noActionGdp);
-
-  elements.explanation.textContent = `Based on your inputs, delaying AMR action in ${state.country} by ${state.delay} years raises mortality, treatment cost, and economic loss while weakening the health system's resilience.`;
-  elements.aiSummary.textContent = `Based on your inputs, delaying action in ${state.country} by ${state.delay} years could lead to ${formatCompactMillions(summary.delayedDeaths)} deaths under a delayed pathway, compared with ${formatCompactThousands(summary.earlyDeaths)} if strong action begins now.`;
-
-  elements.recImmediate.textContent = `Saves ${formatCompactThousands(summary.immediate)} lives`;
-  elements.recShort.textContent = `Saves ${formatCompactThousands(summary.shortTerm)} lives`;
-  elements.recLong.textContent = `Saves ${formatCompactMillions(summary.longTerm)} lives`;
-
-  state.savedLives = Math.round(summary.preventedLives);
-  elements.savedLives.textContent = `You just saved ${state.savedLives.toLocaleString()} lives`;
-  elements.headlineBox.textContent = `${state.country} 2031: AMR Crisis Averted — Early Investment Saves ${formatCompactThousands(summary.preventedLives)} Lives`;
-
-  const trendSeries = buildTrendSeries(summary);
-  renderLineChart(trendSeries);
-  renderBarChart(summary);
+  document.getElementById(`${prefix}Deaths`).textContent = formatCount(cumulative);
+  document.getElementById(`${prefix}Cost`).textContent = formatUsdMillions(
+    summary.healthcare_cost_increase_usd_m,
+  );
+  document.getElementById(`${prefix}Gdp`).textContent = formatNegativeUsdMillions(
+    summary.gdp_loss_usd_m,
+  );
+  document.getElementById(`${prefix}Risk`).textContent = summary.risk_level || "—";
 }
 
-function handleInputChange() {
-  state.country = elements.country.value;
-  state.delay = Number(elements.delay.value);
-  state.funding = Number(elements.funding.value);
-  state.stewardship = Number(elements.stewardship.value);
-  state.rd = Number(elements.rd.value);
-  render();
+function renderFromPayload(payload) {
+  if (!payload?.comparison) return;
+
+  const { inputs, comparison } = payload;
+  const delayed = comparison.delayed.summary;
+  const early = comparison.early.summary;
+
+  applyInputsToForm(inputs, Boolean(payload.embedded));
+
+  elements.liveDeaths.textContent = formatCount(delayed.additional_deaths_from_delay);
+  elements.liveCost.textContent = formatUsdMillions(delayed.healthcare_cost_increase_usd_m);
+  elements.liveGdp.textContent = formatNegativeUsdMillions(delayed.gdp_loss_usd_m);
+
+  elements.explanation.textContent = `In ${inputs.country}, delaying AMR action by ${inputs.delay_years} year(s) is projected to cause ${formatCount(delayed.additional_deaths_from_delay)} additional deaths versus early action, with ${formatUsdMillions(delayed.healthcare_cost_increase_usd_m)} in excess healthcare costs and ${formatNegativeUsdMillions(delayed.gdp_loss_usd_m)} in productivity losses (simulation output).`;
+
+  renderScenarioCard("early", comparison.early);
+  renderScenarioCard("delayed", comparison.delayed);
+  renderScenarioCard("none", comparison.no_action);
+
+  renderLineChart(payload);
+  renderBarChart(payload);
+
+  elements.recImmediate.textContent = `${formatCount(early.lives_saved_vs_no_action)} lives`;
+  elements.recShort.textContent = `${formatCount(delayed.additional_deaths_from_delay)} lives`;
+  elements.recLong.textContent = delayed.critical_year
+    ? String(delayed.critical_year)
+    : "Not reached in horizon";
+
+  const savedLives = early.lives_saved_vs_no_action || 0;
+  elements.savedLives.textContent = `Early action could save ${formatCount(savedLives)} lives vs no action`;
+  elements.headlineBox.textContent = `${inputs.country}: ${delayed.risk_level} risk if action is delayed — early investment saves ${formatCount(savedLives)} lives`;
+
+  if (payload.ai_recommendation) {
+    elements.aiSummary.textContent = payload.ai_recommendation;
+  } else if (payload.ai_fallback) {
+    elements.aiSummary.textContent = payload.ai_fallback;
+  }
+
+  if (payload.data_vintage) {
+    elements.dataVintage.textContent = `Data vintage: ${payload.data_vintage}`;
+  }
 }
 
-function tickCounter() {
-  // Recompute from the real per-second AMR death rate rather than a random jump,
-  // so the number stays anchored to the WHO/Lancet annual estimate.
-  state.counter = Math.round(DEATHS_PER_SECOND * getSecondsSinceMidnight());
-  elements.dailyCounter.textContent = state.counter.toLocaleString();
+function initCounter(globalDirectDeaths) {
+  const annualDeaths = globalDirectDeaths || 1_270_000;
+  const deathsPerSecond = annualDeaths / SECONDS_PER_YEAR;
+
+  function tickCounter() {
+    const counter = Math.round(deathsPerSecond * getSecondsSinceMidnight());
+    elements.dailyCounter.textContent = counter.toLocaleString();
+  }
+
+  tickCounter();
+  setInterval(tickCounter, 2600);
 }
 
-elements.scenarioForm.addEventListener("input", handleInputChange);
+function initEmptyState() {
+  const payload = getPayload();
+  const countries = payload?.supported_countries || ["Global", "USA", "India", "Brazil", "Peru"];
+  populateCountryOptions(countries, payload?.inputs?.country || countries[0]);
+  initCounter(payload?.global_direct_deaths);
+  if (payload?.comparison) {
+    renderFromPayload(payload);
+  }
+}
+
 elements.scenarioForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  render();
+  if (getPayload()?.embedded) return;
+  elements.explanation.textContent =
+    "Adjust inputs in the Streamlit app and click Run Simulation to refresh results from the Python simulation engine.";
   document.getElementById("scenarioCards").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
@@ -304,6 +329,4 @@ elements.downloadReport.addEventListener("click", () => {
   window.print();
 });
 
-elements.dailyCounter.textContent = state.counter.toLocaleString();
-setInterval(tickCounter, 2600);
-render();
+initEmptyState();

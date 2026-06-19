@@ -1,6 +1,7 @@
+"""
 Connection module for the Anthropic Claude API.
 Responsibility: send prompts and return the generated text.
- 
+
 Usage:
     from ai.claude_client import ask_claude
     response = ask_claude("What is the impact of AMR?")

@@ -1,16 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
-  <head>
-    <meta charset="UTF-8">
-    <title>usaii final ui</title>
-    <link rel="stylesheet" href="./style.css">
-
-  </head>
-    
-  <body>
-  <!DOCTYPE html>
-<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -25,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&family=Poppins:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <main class="page-shell">
@@ -33,8 +22,8 @@
         <div class="hero__noise"></div>
         <div class="hero__content">
           <p class="eyebrow">People killed by AMR today:</p>
-          <p class="hero__counter" id="dailyCounter" aria-live="polite">1,243,847</p>
-      
+          <p class="hero__counter" id="dailyCounter" aria-live="polite">0</p>
+
           <div class="hero__title-group">
             <h1>ResistAI: The Cost of Delay</h1>
             <p class="hero__subtitle">
@@ -56,52 +45,48 @@
           <form class="control-panel" id="scenarioForm">
             <label class="field">
               <span>Country</span>
-              <select id="country" name="country">
-                <option value="India">India</option>
-                <option value="Nigeria">Nigeria</option>
-                <option value="Brazil">Brazil</option>
-                <option value="United Kingdom">United Kingdom</option>
-                <option value="United States">United States</option>
-              </select>
+              <select id="country" name="country" aria-label="Country"></select>
             </label>
 
             <label class="field">
               <span>Years of delay</span>
               <div class="field__range">
-                <input id="delay" name="delay" type="range" min="1" max="10" value="5" />
+                <input id="delay" name="delay" type="range" min="0" max="20" value="5" />
                 <strong id="delayValue">5 years</strong>
               </div>
             </label>
 
             <label class="field">
               <span>Funding level</span>
-              <div class="field__range">
-                <input id="funding" name="funding" type="range" min="1" max="10" value="6" />
-                <strong id="fundingValue">Medium</strong>
-              </div>
+              <select id="funding" name="funding">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+              </select>
             </label>
 
             <label class="field">
-              <span>Stewardship adoption</span>
+              <span>Stewardship adoption (%)</span>
               <div class="field__range">
                 <input
                   id="stewardship"
                   name="stewardship"
                   type="range"
-                  min="1"
-                  max="10"
-                  value="3"
+                  min="0"
+                  max="100"
+                  value="50"
                 />
-                <strong id="stewardshipValue">Low</strong>
+                <strong id="stewardshipValue">50%</strong>
               </div>
             </label>
 
             <label class="field">
               <span>R&amp;D investment</span>
-              <div class="field__range">
-                <input id="rd" name="rd" type="range" min="1" max="10" value="8" />
-                <strong id="rdValue">High</strong>
-              </div>
+              <select id="rd" name="rd">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+              </select>
             </label>
 
             <button class="button button--primary button--full" type="submit">
@@ -110,24 +95,23 @@
           </form>
 
           <aside class="live-panel">
-            <p class="live-panel__label">Estimated impact updating live...</p>
+            <p class="live-panel__label">Estimated impact from simulation</p>
             <div class="metric-stack">
               <div class="metric">
-                <span>Deaths</span>
-                <strong id="liveDeaths">1.2M</strong>
+                <span>Additional deaths (delay)</span>
+                <strong id="liveDeaths">—</strong>
               </div>
               <div class="metric">
-                <span>Cost</span>
-                <strong id="liveCost">$80B</strong>
+                <span>Healthcare cost increase</span>
+                <strong id="liveCost">—</strong>
               </div>
               <div class="metric">
-                <span>GDP impact</span>
-                <strong id="liveGdp">-$120B</strong>
+                <span>GDP / productivity loss</span>
+                <strong id="liveGdp">—</strong>
               </div>
             </div>
             <p class="live-panel__note" id="explanation">
-              Based on your inputs, delaying AMR action in India by 5 years results in
-              higher mortality, rising treatment costs, and avoidable productivity loss.
+              Run the simulation in Streamlit to load results from the shared data and simulation modules.
             </p>
           </aside>
         </div>
@@ -138,25 +122,28 @@
           <article class="result-card result-card--positive">
             <p>Early Action</p>
             <ul>
-              <li>Deaths: <strong id="earlyDeaths">800K</strong></li>
-              <li>Cost: <strong id="earlyCost">$60B</strong></li>
-              <li>GDP: <strong id="earlyGdp">-$100B</strong></li>
+              <li>Deaths: <strong id="earlyDeaths">—</strong></li>
+              <li>Cost: <strong id="earlyCost">—</strong></li>
+              <li>GDP: <strong id="earlyGdp">—</strong></li>
+              <li>Risk: <strong id="earlyRisk">—</strong></li>
             </ul>
           </article>
           <article class="result-card result-card--warning">
             <p>Delayed Action</p>
             <ul>
-              <li>Deaths: <strong id="delayedDeaths">2.3M</strong></li>
-              <li>Cost: <strong id="delayedCost">$180B</strong></li>
-              <li>GDP: <strong id="delayedGdp">-$340B</strong></li>
+              <li>Deaths: <strong id="delayedDeaths">—</strong></li>
+              <li>Cost: <strong id="delayedCost">—</strong></li>
+              <li>GDP: <strong id="delayedGdp">—</strong></li>
+              <li>Risk: <strong id="delayedRisk">—</strong></li>
             </ul>
           </article>
           <article class="result-card result-card--danger">
             <p>No Action</p>
             <ul>
-              <li>Deaths: <strong id="noneDeaths">4.1M</strong></li>
-              <li>Cost: <strong id="noneCost">$400B</strong></li>
-              <li>GDP: <strong id="noneGdp">-$700B</strong></li>
+              <li>Deaths: <strong id="noneDeaths">—</strong></li>
+              <li>Cost: <strong id="noneCost">—</strong></li>
+              <li>GDP: <strong id="noneGdp">—</strong></li>
+              <li>Risk: <strong id="noneRisk">—</strong></li>
             </ul>
           </article>
         </div>
@@ -164,7 +151,7 @@
         <div class="viz-grid">
           <article class="viz-card">
             <div class="viz-card__head">
-              <span>2025–2050</span>
+              <span id="chartYearSpan">2025–2045</span>
               <h3>Deaths over time</h3>
             </div>
             <svg id="lineChart" viewBox="0 0 620 260" role="img" aria-label="AMR deaths over time chart"></svg>
@@ -173,7 +160,7 @@
           <article class="viz-card">
             <div class="viz-card__head">
               <span>Scenario comparison</span>
-              <h3>Economic cost</h3>
+              <h3>Healthcare cost increase (USD M)</h3>
             </div>
             <svg id="barChart" viewBox="0 0 620 260" role="img" aria-label="AMR cost comparison chart"></svg>
           </article>
@@ -183,24 +170,22 @@
           <div>
             <span class="section-kicker">AI explanation</span>
             <p id="aiSummary">
-              Based on your inputs, delaying AMR action in India by 5 years results in
-              millions of additional resistant infections, steep fiscal pressure, and
-              preventable hospital burden.
+              AI policy recommendations appear here after you run the simulation in Streamlit.
             </p>
           </div>
 
           <div class="recommendations">
             <div>
-              <span>Immediate actions</span>
-              <strong id="recImmediate">Saves 300K lives</strong>
+              <span>Lives saved (early vs no action)</span>
+              <strong id="recImmediate">—</strong>
             </div>
             <div>
-              <span>Short term actions</span>
-              <strong id="recShort">Saves 800K lives</strong>
+              <span>Lives lost to delay</span>
+              <strong id="recShort">—</strong>
             </div>
             <div>
-              <span>Long term actions</span>
-              <strong id="recLong">Saves 1.5M lives</strong>
+              <span>Critical year (delayed)</span>
+              <strong id="recLong">—</strong>
             </div>
           </div>
 
@@ -210,10 +195,8 @@
         </div>
 
         <div class="success-panel" id="successPanel" hidden>
-          <p class="success-panel__count" id="savedLives">You just saved 1,847,293 lives</p>
-          <div class="headline-box" id="headlineBox">
-            India 2031: AMR Crisis Averted — Early Investment Saves 2M Lives
-          </div>
+          <p class="success-panel__count" id="savedLives">—</p>
+          <div class="headline-box" id="headlineBox">—</div>
           <button class="button button--primary" id="downloadReport">Download PDF Report</button>
         </div>
       </section>
@@ -239,7 +222,7 @@
             <ul>
               <li>WHO Global AMR Report 2023</li>
               <li>OECD AMR Report</li>
-              <li>CDC Resistance Report 2019</li>
+              <li>Lancet 2022 global bacterial AMR burden study</li>
             </ul>
           </article>
 
@@ -253,17 +236,12 @@
 
           <article class="about-card">
             <h3>📅 Data Last Updated</h3>
-            <p>WHO data vintage: 2023</p>
+            <p id="dataVintage">Data vintage: pending simulation run</p>
           </article>
         </div>
       </section>
     </main>
 
-    <script src="./app.js"></script>
+    <script src="./script.js"></script>
   </body>
-</html>
-    <script  src="./script.js"></script>
-
-  </body>
-  
 </html>
