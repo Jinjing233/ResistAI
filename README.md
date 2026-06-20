@@ -1,28 +1,50 @@
 # ResistAI: The Cost of Delay
 
-An AI-powered **policy decision-support simulator** that models the human and economic cost of delaying action on antimicrobial resistance (AMR). ResistAI helps policymakers compare early action, delayed action, and no additional action across seven countries/regions.
+Antimicrobial resistance (AMR) is one of the most urgent global health threats of our time. As resistant infections spread, common treatments fail, hospital stays lengthen, and preventable deaths rise. When policymakers delay action, the human and economic costs do not stay flat—they compound year after year.
 
-> **Disclaimer:** This tool supports policy exploration and education. It is **not** a clinical diagnostic tool and **not** a strict epidemiological forecasting model. All outputs should be reviewed by qualified public health experts before any real-world decision.
+**ResistAI** is an AI-powered **policy decision-support simulator** that helps policymakers and public health stakeholders **visualize the consequences of inaction** and **compare different intervention strategies**. Users can explore early action, delayed action, and no additional action across seven countries and regions, review data-driven impact metrics, and export a shareable policy brief.
+
+> **Disclaimer:** ResistAI is a **policy decision-support and educational tool**. It is **not** a clinical diagnostic system and **not** a strict epidemiological prediction model. All outputs are intended to support discussion and planning and should be reviewed by qualified public health experts before any real-world decision.
 
 ## Workflow
 
 ```
-User inputs → Simulation → Data-driven impact → AI recommendation → Visualization & export
+User Input → Simulation Model → Data-Driven Impact Analysis → AI Policy Brief → Visualization & Report Export
 ```
 
 ## Supported countries / regions
 
-`Global`, `USA`, `India`, `Brazil`, `Peru`, `Nigeria`, `UK`
+ResistAI currently supports seven selectable countries and regions:
+
+- Global
+- USA
+- India
+- Brazil
+- Peru
+- Nigeria
+- UK
 
 ## Data sources
 
-- **WHO** — AMR resistance proxies (CSV) and global AMR reporting context  
-- **OECD** — economic fields (GDP, cost per death, country modifiers)  
-- **Lancet 2019/2022** — global and country-level AMR mortality anchors  
+Impact estimates combine published global health data with documented assumptions where country-level figures are incomplete. Primary references include:
 
-See `data/references.md` and `data/sources.py` for transparency notes. Some fields are documented estimates and are labeled in the UI.
+- **WHO** — AMR resistance proxies and global AMR reporting context
+- **OECD** — economic indicators including GDP, cost-per-death estimates, and country modifiers
+- **Lancet 2019/2022** — AMR mortality anchors
 
-## Installation
+For transparency and documentation, see [`data/references.md`](data/references.md) and [`data/sources.py`](data/sources.py). Some values are documented estimates and are clearly identified in the application.
+
+## Try it online
+
+You can explore ResistAI without installing anything locally:
+
+**[https://resist-ai.streamlit.app/](https://resist-ai.streamlit.app/)**
+
+Open the link in your browser, select a country and scenario in the sidebar, and run a simulation. The online demo provides the same core workflow as the local version: impact analysis, recovery what-if, AI policy brief, and HTML report download.
+
+## Installation & local usage
+
+### Setup
 
 ```bash
 python -m venv .venv
@@ -36,33 +58,28 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Run the application
+### Run the application
 
 ```bash
 streamlit run app.py
 ```
 
-Open the URL shown in the terminal (typically `http://localhost:8501`).
+Streamlit will start a local server and open the app in your browser, usually at **http://localhost:8501**. Use the sidebar to configure country and scenario settings, then scroll through results, recovery analysis, and the AI policy brief.
 
-## Optional: Claude AI recommendations
+## HTML report export
 
-By default, ResistAI uses a **local demo policy brief** when no API key is set (ideal for hackathon demos).
+After running a simulation, scroll to the **AI Policy Brief** section and click **Download HTML Report**.
 
-To enable Claude-generated recommendations:
+The downloaded file is a self-contained HTML document (inline CSS, light print-friendly layout) that includes:
 
-```bash
-# Windows PowerShell
-$env:ANTHROPIC_API_KEY = "your-key-here"
+- Selected scenario settings
+- Impact metrics
+- Comparison tables
+- Recovery analysis (when available)
+- AI policy brief
+- Data sources and disclaimer
 
-# macOS / Linux
-export ANTHROPIC_API_KEY="your-key-here"
-```
-
-Or add the key to a `.env` file in the project root (loaded if you use `python-dotenv` in your environment).
-
-## Download HTML report
-
-After running a simulation, scroll to the **AI Policy Brief** section and click **Download HTML Report**. The file is self-contained (inline CSS, light print-friendly layout) and includes scenario settings, metrics, tables, recovery results, the AI brief, and disclaimers.
+Open the downloaded HTML file in any browser. To save a PDF, use **Ctrl+P** (Windows/Linux) or **Cmd+P** (macOS) and choose **Save as PDF**.
 
 ## Smoke tests
 
@@ -70,7 +87,7 @@ After running a simulation, scroll to the **AI Policy Brief** section and click 
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-No Anthropic API key is required.
+These smoke tests validate country baselines, simulation output, AI demo fallback, and HTML report export. **No external API key is required.**
 
 ## Project structure
 
@@ -79,15 +96,15 @@ No Anthropic API key is required.
 | `app.py` | Streamlit UI controller |
 | `simulation/` | AMR model and scenario engine |
 | `data/` | Country baselines, CSV loaders, references |
-| `ai/` | Claude client + demo fallback recommendations |
-| `report_export.py` | Downloadable HTML report builder |
-| `frontend/style.css` | Dark-theme styles injected into Streamlit |
-| `archive/frontend/` | Legacy HTML/JS design reference (not used at runtime) |
+| `ai/` | AI recommendation system and demo fallback |
+| `report_export.py` | HTML report generation |
+| `frontend/style.css` | Full UI styling |
+| `archive/frontend/` | Legacy frontend design reference |
 | `tests/` | Smoke tests |
 
 ## Team roles
 
-- Frontend: Roshni  
-- Simulation model: Jinjing  
-- Data & validation: Catharine  
-- Claude API & AI recommendations: Ximena  
+- **Frontend & UI Design:** Roshni
+- **Simulation Model & System Integration:** Jinjing
+- **Data Collection & Validation:** Catharine
+- **AI Recommendation System:** Ximena
