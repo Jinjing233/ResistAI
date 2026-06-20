@@ -7,6 +7,7 @@ Workflow:
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta
 from html import escape
 from pathlib import Path
@@ -14,7 +15,8 @@ from pathlib import Path
 import plotly.graph_objects as go
 import streamlit as st
 
-from data import DATA_VINTAGE, get_country_baseline, list_supported_countries
+from data import DATA_VINTAGE, get_country_baseline, get_country_metadata, list_supported_countries
+from report_export import build_downloadable_html_report
 from simulation import (
     RecoveryInputs,
     SimulationInputs,
@@ -40,6 +42,173 @@ SCENARIO_COLORS = {
 }
 
 PLOTLY_CONFIG = {"responsive": True, "displayModeBar": False}
+
+
+def build_estimate_badges(metadata: dict) -> list[str]:
+    """Return up to two short transparency labels for estimated data fields."""
+    country = metadata.get("country", "")
+    badges: list[str] = []
+
+    if metadata.get("baseline_deaths_is_estimate"):
+        if country in ("Peru", "Nigeria", "UK"):
+            badges.append("Based on regional scaling")
+        else:
+            badges.append("Documented estimate")
+
+    has_other_estimates = any(
+        metadata.get(key)
+        for key in metadata
+        if key.endswith("_is_estimate") and key != "baseline_deaths_is_estimate"
+    )
+    if has_other_estimates and "Estimated data" not in badges:
+        badges.append("Estimated data")
+
+    return badges[:2]
+
+
+def render_estimate_badges_html(country: str) -> str:
+    """Render subtle estimate transparency badges for the selected country."""
+    badges = build_estimate_badges(get_country_metadata(country))
+    if not badges:
+        return ""
+    pills = "".join(f'<span class="estimate-badge">{escape(label)}</span>' for label in badges)
+    return f'<div class="estimate-badges">{pills}</div>'
+
+
+def _inline_markdown_html(text: str) -> str:
+    """Convert **bold** spans in plain text to HTML (content is escaped)."""
+    parts = re.split(r"(\*\*.+?\*\*)", text)
+    rendered: list[str] = []
+    for part in parts:
+        if part.startswith("**") and part.endswith("**") and len(part) > 4:
+            rendered.append(f"<strong>{escape(part[2:-2])}</strong>")
+        else:
+            rendered.append(escape(part))
+    return "".join(rendered)
+
+
+def format_ai_brief_html(markdown_text: str) -> str:
+    """Convert AI policy brief markdown into HTML for the ai-box card."""
+    blocks = re.split(r"\n(?=### )", markdown_text.strip())
+    html_parts: list[str] = []
+
+    for block in blocks:
+        lines = [line.rstrip() for line in block.split("\n")]
+        while lines and not lines[0].strip():
+            lines.pop(0)
+        if not lines:
+            continue
+
+        body_start = 0
+        if lines[0].startswith("### "):
+            html_parts.append(f"<h3>{_inline_markdown_html(lines[0][4:].strip())}</h3>")
+            body_start = 1
+
+        i = body_start
+        while i < len(lines):
+            line = lines[i].strip()
+            if not line:
+                i += 1
+                continue
+
+            if re.match(r"^\d+\.\s", line):
+                html_parts.append("<ol>")
+                while i < len(lines) and re.match(r"^\d+\.\s", lines[i].strip()):
+                    item = re.sub(r"^\d+\.\s*", "", lines[i].strip(), count=1)
+                    html_parts.append(f"<li>{_inline_markdown_html(item)}</li>")
+                    i += 1
+                html_parts.append("</ol>")
+                continue
+
+            paragraph_lines: list[str] = []
+            while i < len(lines):
+                current = lines[i].strip()
+                if not current or re.match(r"^\d+\.\s", current) or current.startswith("### "):
+                    break
+                paragraph_lines.append(current)
+                i += 1
+
+            if paragraph_lines:
+                html_parts.append(f"<p>{_inline_markdown_html(' '.join(paragraph_lines))}</p>")
+
+    return "\n".join(html_parts)
+
+
+def build_side_by_side_rows(comparison, recovery=None) -> list[dict[str, object]]:
+    """Build rows for the final report side-by-side comparison table."""
+    if recovery is not None:
+        return [
+            {
+                "Pathway": "Recovery Strategy",
+                "Cumulative deaths": sum(recovery.recovery.annual_deaths),
+                "Risk level": recovery.recovery.summary["risk_level"],
+                "Final-year deaths": recovery.recovery.summary["projected_annual_deaths_final_year"],
+            },
+            {
+                "Pathway": "Continued no action",
+                "Cumulative deaths": sum(recovery.continue_no_action.annual_deaths),
+                "Risk level": recovery.continue_no_action.summary["risk_level"],
+                "Final-year deaths": recovery.continue_no_action.summary[
+                    "projected_annual_deaths_final_year"
+                ],
+            },
+        ]
+
+    rows: list[dict[str, object]] = []
+    for result in (comparison.early, comparison.delayed, comparison.no_action):
+        summary = result.summary
+        rows.append(
+            {
+                "Scenario": result.scenario,
+                "Cumulative deaths": sum(result.annual_deaths),
+                "Additional deaths vs early": summary["additional_deaths_from_delay"],
+                "Healthcare cost (USD M)": summary["healthcare_cost_increase_usd_m"],
+                "GDP loss (USD M)": summary["gdp_loss_usd_m"],
+                "Risk level": summary["risk_level"],
+            }
+        )
+    return rows
+
+
+def _format_table_cell(column: str, value: object) -> str:
+    if value is None:
+        return "—"
+    if isinstance(value, float) and ("USD" in column or "cost" in column.lower() or "GDP" in column):
+        return fmt_usd_m(value)
+    if isinstance(value, int) and ("death" in column.lower() or "Death" in column):
+        return fmt_count(value)
+    return str(value)
+
+
+def format_side_by_side_table_html(rows: list[dict[str, object]]) -> str:
+    """Render the side-by-side comparison table as HTML for the AI report card."""
+    if not rows:
+        return ""
+
+    headers = list(rows[0].keys())
+    head_html = "".join(f"<th>{escape(column)}</th>" for column in headers)
+    body_html = []
+    for row in rows:
+        cells = "".join(
+            f"<td>{escape(_format_table_cell(column, row[column]))}</td>" for column in headers
+        )
+        body_html.append(f"<tr>{cells}</tr>")
+
+    # Compact HTML (no leading indentation) so Streamlit markdown does not treat it as a code block.
+    return (
+        '<div class="ai-report-table">'
+        '<div class="section-heading ai-report-table__heading">'
+        '<span class="section-kicker">Outcomes</span>'
+        "<h2>Side-by-side comparison</h2>"
+        "</div>"
+        '<div class="ai-report-table__wrap">'
+        "<table>"
+        f"<thead><tr>{head_html}</tr></thead>"
+        f"<tbody>{''.join(body_html)}</tbody>"
+        "</table>"
+        "</div>"
+        "</div>"
+    )
 
 
 def inject_design_system() -> None:
@@ -290,6 +459,7 @@ def render_live_panel(inputs: SimulationInputs, comparison) -> None:
             <span class="section-kicker">Results</span>
             <h2>Estimated Impact</h2>
           </div>
+          {render_estimate_badges_html(inputs.country)}
           <aside class="live-panel">
             <p class="live-panel__label">Estimated impact from simulation</p>
             <div class="metric-stack">
@@ -368,33 +538,6 @@ def render_scenario_results(comparison) -> None:
         )
     st.markdown("</div>", unsafe_allow_html=True)
 
-    rows = []
-    for result in (comparison.early, comparison.delayed, comparison.no_action):
-        s = result.summary
-        rows.append(
-            {
-                "Scenario": result.scenario,
-                "Cumulative deaths": sum(result.annual_deaths),
-                "Additional deaths vs early": s["additional_deaths_from_delay"],
-                "Healthcare cost (USD M)": s["healthcare_cost_increase_usd_m"],
-                "GDP loss (USD M)": s["gdp_loss_usd_m"],
-                "Lives saved vs no action": s["lives_saved_vs_no_action"],
-                "Risk level": s["risk_level"],
-                "Critical year": s["critical_year"],
-            }
-        )
-
-    st.markdown(
-        """
-        <div class="scenario-table-shell">
-          <div class="section-heading" style="margin-bottom: 16px;">
-            <span class="section-kicker">Detail</span>
-            <h2>Scenario comparison table</h2>
-          </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.dataframe(rows, use_container_width=True, hide_index=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -479,8 +622,8 @@ def render_recovery_section(recovery, prior_delay_years: int) -> None:
         unsafe_allow_html=True,
     )
 
-    recovery_cols = st.columns(2, gap="large")
-    with recovery_cols[0]:
+    col, = st.columns(1)
+    with col:
         st.markdown(
             """
             <div class="viz-card-head">
@@ -495,36 +638,6 @@ def render_recovery_section(recovery, prior_delay_years: int) -> None:
             use_container_width=True,
             config=PLOTLY_CONFIG,
         )
-
-    compare_rows = [
-        {
-            "Pathway": "Recovery Strategy",
-            "Cumulative deaths": sum(recovery.recovery.annual_deaths),
-            "Risk level": recovery.recovery.summary["risk_level"],
-            "Final-year deaths": recovery.recovery.summary["projected_annual_deaths_final_year"],
-        },
-        {
-            "Pathway": "Continued no action",
-            "Cumulative deaths": sum(recovery.continue_no_action.annual_deaths),
-            "Risk level": recovery.continue_no_action.summary["risk_level"],
-            "Final-year deaths": recovery.continue_no_action.summary[
-                "projected_annual_deaths_final_year"
-            ],
-        },
-    ]
-    with recovery_cols[1]:
-        st.markdown(
-            """
-            <div class="scenario-table-shell">
-              <div class="section-heading" style="margin-bottom: 12px;">
-                <span class="section-kicker">Outcomes</span>
-                <h2>Side-by-side comparison</h2>
-              </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.dataframe(compare_rows, use_container_width=True, hide_index=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_recovery_unavailable(note: str) -> None:
@@ -547,6 +660,10 @@ def render_ai_section(
     ai_source: str,
     inputs: SimulationInputs,
     comparison,
+    recovery=None,
+    recovery_settings: dict | None = None,
+    recovery_note: str | None = None,
+    effective_prior_delay: int | None = None,
 ) -> None:
     delayed = comparison.delayed.summary
     early = comparison.early.summary
@@ -559,63 +676,95 @@ def render_ai_section(
 
     badge_class = "ai-badge--claude" if ai_source == "claude" else "ai-badge--demo"
     badge_label = "Powered by Claude" if ai_source == "claude" else "Demo mode — local policy brief"
+    brief_html = format_ai_brief_html(ai_text)
+    table_html = format_side_by_side_table_html(build_side_by_side_rows(comparison, recovery))
 
-    st.markdown(
-        f"""
-        <section class="results" id="ai-recommendation">
-          <div class="ai-box">
-            <div>
-              <span class="section-kicker">AI explanation</span>
-              <span class="ai-badge {badge_class}">{escape(badge_label)}</span>
-            </div>
-            <div class="recommendations">
-              <div>
-                <span>Lives saved (early vs no action)</span>
-                <strong>{fmt_count(saved_lives)} lives</strong>
-              </div>
-              <div>
-                <span>Lives lost to delay</span>
-                <strong>{fmt_count(delayed["additional_deaths_from_delay"])} lives</strong>
-              </div>
-              <div>
-                <span>Critical year (delayed)</span>
-                <strong>{escape(critical)}</strong>
-              </div>
-            </div>
-          </div>
-        </section>
-        """,
-        unsafe_allow_html=True,
+    # Single compact HTML blob — indented markdown after </div> becomes a code block in Streamlit.
+    report_html = (
+        '<section class="results" id="ai-recommendation">'
+        '<div class="ai-report-shell">'
+        '<div class="ai-box ai-box--policy">'
+        '<div class="ai-box__header">'
+        '<span class="section-kicker">AI explanation</span>'
+        f'<span class="ai-badge {badge_class}">{escape(badge_label)}</span>'
+        f"{render_estimate_badges_html(inputs.country)}"
+        "</div>"
+        '<div class="recommendations">'
+        "<div>"
+        "<span>Lives saved (early vs no action)</span>"
+        f"<strong>{fmt_count(saved_lives)} lives</strong>"
+        "</div>"
+        "<div>"
+        "<span>Lives lost to delay</span>"
+        f"<strong>{fmt_count(delayed['additional_deaths_from_delay'])} lives</strong>"
+        "</div>"
+        "<div>"
+        "<span>Critical year (delayed)</span>"
+        f"<strong>{escape(critical)}</strong>"
+        "</div>"
+        "</div>"
+        f'<div class="ai-brief-body">{brief_html}</div>'
+        f"{table_html}"
+        "</div>"
+        "</div>"
+        "</section>"
     )
-
-    st.markdown('<div class="ai-box ai-brief-body">', unsafe_allow_html=True)
-    st.markdown(ai_text)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown(report_html, unsafe_allow_html=True)
 
     headline = (
         f"{inputs.country}: {delayed['risk_level']} risk if action is delayed — "
         f"early investment saves {fmt_count(saved_lives)} lives"
     )
 
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.markdown('<div class="resistai-inline-btn">', unsafe_allow_html=True)
+    st.markdown('<div class="ai-report-actions">', unsafe_allow_html=True)
+    action_cols = st.columns([1, 1], gap="large")
+    with action_cols[0]:
+        st.markdown('<div class="ai-report-actions__left">', unsafe_allow_html=True)
         if st.button("✓ Apply Recommendations", key="apply_recommendations"):
             st.session_state["show_success_panel"] = True
         st.markdown("</div>", unsafe_allow_html=True)
-    with col2:
-        st.markdown('<div class="resistai-inline-btn resistai-inline-btn--primary">', unsafe_allow_html=True)
-        st.caption("Use Ctrl+P (Cmd+P on Mac) to print or save this report as PDF.")
+    with action_cols[1]:
+        st.markdown('<div class="ai-report-actions__download">', unsafe_allow_html=True)
+        export_html = build_downloadable_html_report(
+            inputs=inputs,
+            comparison=comparison,
+            ai_text=ai_text,
+            ai_source=ai_source,
+            recovery=recovery,
+            recovery_settings=recovery_settings,
+            recovery_note=recovery_note,
+            effective_prior_delay=effective_prior_delay,
+        )
+        country_slug = inputs.country.replace(" ", "_")
+        st.download_button(
+            label="Download HTML Report",
+            data=export_html.encode("utf-8"),
+            file_name=f"ResistAI_Report_{country_slug}.html",
+            mime="text/html",
+            key="download_html_report",
+            use_container_width=True,
+        )
+        st.markdown(
+            """
+            <p class="ai-report-export-hint">
+              Open the downloaded HTML file and use Ctrl+P / Cmd+P to save it as PDF.
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
         st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     if st.session_state.get("show_success_panel"):
         st.markdown(
             f"""
-            <div class="success-panel">
-              <p class="success-panel__count">
-                Early action could save {fmt_count(saved_lives)} lives vs no action
-              </p>
-              <div class="headline-box">{escape(headline)}</div>
+            <div class="ai-report-shell">
+              <div class="success-panel">
+                <p class="success-panel__count">
+                  Early action could save {fmt_count(saved_lives)} lives vs no action
+                </p>
+                <div class="headline-box">{escape(headline)}</div>
+              </div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -688,6 +837,9 @@ def main() -> None:
             unsafe_allow_html=True,
         )
         country = st.selectbox("Country", list_supported_countries(), index=4)
+        estimate_sidebar = render_estimate_badges_html(country)
+        if estimate_sidebar:
+            st.markdown(estimate_sidebar, unsafe_allow_html=True)
         delay_years = st.slider("Years of delay", min_value=0, max_value=20, value=5)
         funding_level = st.selectbox("Funding level", ["Low", "Medium", "High"], index=1)
         stewardship_rate = st.slider(
@@ -760,6 +912,12 @@ def main() -> None:
             st.session_state["effective_prior_delay"] = effective_prior_delay
             st.session_state["ai_text"] = ai_text
             st.session_state["ai_source"] = ai_source
+            st.session_state["recovery_settings"] = {
+                "funding_level": recovery_funding,
+                "stewardship_rate": float(recovery_stewardship),
+                "rd_investment": recovery_rd,
+                "projection_years": recovery_horizon,
+            }
 
     comparison = st.session_state["comparison"]
     inputs = st.session_state["inputs"]
@@ -781,6 +939,10 @@ def main() -> None:
         st.session_state.get("ai_source", "demo"),
         inputs,
         comparison,
+        recovery,
+        st.session_state.get("recovery_settings"),
+        recovery_note,
+        st.session_state.get("effective_prior_delay"),
     )
     render_about()
     st.markdown("</div>", unsafe_allow_html=True)
