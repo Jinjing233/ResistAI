@@ -598,34 +598,39 @@ svg {
   gap: 1rem;
 }
 
-.ai-report-actions__left .stButton > button {
-  background: var(--color-green);
-  color: #03150c;
-  border: none;
-  border-radius: var(--radius-button);
-  font-weight: 600;
-  min-height: 48px;
-}
-
-.ai-report-actions__left .stButton > button:hover {
-  background: #50e19a;
-  color: #03150c;
-  border: none;
-}
-
+.ai-report-actions__left .stButton > button,
 .ai-report-actions__download .stDownloadButton > button {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--color-paper);
-  border: 1px solid var(--color-border);
+  appearance: none;
+  background: #0a0a12;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: var(--radius-button);
   font-weight: 600;
   min-height: 48px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
+.ai-report-actions__left .stButton > button:hover,
 .ai-report-actions__download .stDownloadButton > button:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--color-paper);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: #161624;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.42);
+  transform: translateY(-1px);
+}
+
+.ai-report-actions__left .stButton > button:active,
+.ai-report-actions__download .stDownloadButton > button:active {
+  background: #050508;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transform: translateY(0);
 }
 
 .ai-report-export-hint {
@@ -926,6 +931,37 @@ header[data-testid="stHeader"] {
   background: transparent;
 }
 
+/* Restore Streamlit Material Symbols on sidebar collapse/expand and other chrome icons */
+[data-testid="stIconMaterial"],
+[data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"],
+[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"],
+[data-testid="stSidebarCollapseButton"] span,
+[data-testid="stExpandSidebarButton"] span {
+  font-family: "Material Symbols Rounded" !important;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24 !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  direction: ltr !important;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "liga" !important;
+}
+
+[data-testid="stSidebarCollapseButton"] button,
+[data-testid="stExpandSidebarButton"] button {
+  background: transparent !important;
+  border: none !important;
+  color: var(--color-steel) !important;
+}
+
+[data-testid="stSidebarCollapseButton"] button:hover,
+[data-testid="stExpandSidebarButton"] button:hover {
+  color: var(--color-paper) !important;
+}
+
 .main .block-container {
   max-width: 1180px;
   padding-top: 0;
@@ -1074,6 +1110,69 @@ header[data-testid="stHeader"] {
   text-align: right !important;
 }
 
+.ai-report-actions .stButton > button,
+.ai-report-actions .stDownloadButton > button,
+.ai-report-actions .stButton > button[kind="primary"],
+.ai-report-actions .stButton > button[kind="secondary"],
+.ai-report-actions .stDownloadButton > button[kind="primary"],
+.ai-report-actions .stDownloadButton > button[kind="secondary"] {
+  appearance: none !important;
+  background: #0a0a12 !important;
+  background-color: #0a0a12 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: var(--radius-button) !important;
+  font-weight: 600 !important;
+  font-family: var(--font-base) !important;
+  min-height: 48px !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38) !important;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease !important;
+}
+
+.ai-report-actions .stButton > button:hover,
+.ai-report-actions .stDownloadButton > button:hover,
+.ai-report-actions .stButton > button[kind="primary"]:hover,
+.ai-report-actions .stButton > button[kind="secondary"]:hover,
+.ai-report-actions .stDownloadButton > button[kind="primary"]:hover,
+.ai-report-actions .stDownloadButton > button[kind="secondary"]:hover {
+  background: #161624 !important;
+  background-color: #161624 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.42) !important;
+  transform: translateY(-1px) !important;
+}
+
+.ai-report-actions .stButton > button:active,
+.ai-report-actions .stDownloadButton > button:active,
+.ai-report-actions .stButton > button[kind="primary"]:active,
+.ai-report-actions .stButton > button[kind="secondary"]:active,
+.ai-report-actions .stDownloadButton > button[kind="primary"]:active,
+.ai-report-actions .stDownloadButton > button[kind="secondary"]:active {
+  background: #050508 !important;
+  background-color: #050508 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+  transform: translateY(0) !important;
+}
+
+.ai-report-actions .stButton > button:focus,
+.ai-report-actions .stDownloadButton > button:focus,
+.ai-report-actions .stButton > button:focus-visible,
+.ai-report-actions .stDownloadButton > button:focus-visible {
+  outline: none !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.42),
+    0 0 0 2px rgba(255, 255, 255, 0.12) !important;
+}
+
 section[data-testid="stSidebar"] {
   background: rgba(8, 8, 8, 0.96);
   border-right: 1px solid var(--color-border);
@@ -1088,7 +1187,7 @@ section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3,
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] p,
-section[data-testid="stSidebar"] span {
+section[data-testid="stSidebar"] span:not([data-testid="stIconMaterial"]) {
   color: var(--color-paper) !important;
   font-family: var(--font-base);
 }
